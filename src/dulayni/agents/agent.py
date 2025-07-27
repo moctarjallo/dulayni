@@ -21,13 +21,23 @@ class Agent:
         return cls(role, graph, parallel_tool_calls)
 
     @staticmethod
-    def _load_server_params(config_path: str, server_name: str = "default"):
-        cfg = json.loads(Path(config_path).read_text())
+    def _load_server_params(config_source, server_name: str = "default"):
+        if isinstance(config_source, dict):
+            cfg = config_source
+        elif isinstance(config_source, str):
+            try:
+                # Try to parse as JSON string
+                cfg = json.loads(config_source)
+            except json.JSONDecodeError:
+                # Fallback: treat as file path
+                cfg = json.loads(Path(config_source).read_text())
+        else:
+            raise TypeError("mcp_servers_file must be a dict, JSON string, or file path string")
+
         if server_name:
-            return {
-                server_name: cfg["mcpServers"][server_name]
-            }
+            return {server_name: cfg["mcpServers"][server_name]}
         return cfg["mcpServers"]
+
 
     async def respond(self, message, thread_id):
         config = {"configurable": {"thread_id": thread_id}}

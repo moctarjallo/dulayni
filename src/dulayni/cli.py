@@ -1,8 +1,12 @@
 from typing import Optional
 import click
 import asyncio
+from rich.console import Console
+from rich.markdown import Markdown
 
 from dulayni.mcp.client import run_agent
+
+console = Console()
 
 @click.command()
 @click.option("--model", "-m", default="gpt-4.1-mini",
@@ -23,25 +27,35 @@ def main(model: str, openai_api_key: str,
          parallel_tool_calls: bool,
          agent_type: str,
          print_mode: str):
-    # You can load the API key in env or pass it into run_agent if needed
-    query = query or "what's (3 + 5) x 12?"
-    result = asyncio.run(run_agent(
-        agent_type=agent_type,
-        role="user",
-        model=model,
-        content=query,
-        system_prompt="You are a helpful agent",
-        thread_id="123",
-        memory_db="dulayni_memory.sqlite",
-        mcp_servers_file=path2mcp_servers_file,
-        startup_timeout=startup_timeout,
-        parallel_tool_calls=parallel_tool_calls
-    ))
-    if print_mode == "json":
-        import json
-        print(json.dumps(result, indent=2))
+    async def handle_query(content: str):
+        return await run_agent(
+            agent_type=agent_type,
+            role="user",
+            model=model,
+            content=content,
+            system_prompt="You are a helpful agent",
+            thread_id="123",
+            memory_db="dulayni_memory.sqlite",
+            mcp_servers_file=path2mcp_servers_file,
+            startup_timeout=startup_timeout,
+            parallel_tool_calls=parallel_tool_calls
+        )
+
+    if query:
+        result = asyncio.run(handle_query(query))
+        if print_mode == "json":
+            import json
+            print(json.dumps(result, indent=2))
+        else:
+            console.print(Markdown(result))
     else:
-        print(result)
+        console.print("[bold green]Interactive mode. Type 'q' to quit.[/bold green]")
+        while True:
+            user_input = console.input("[bold blue]> [/bold blue]")
+            if user_input.strip().lower() == "q":
+                break
+            result = asyncio.run(handle_query(user_input))
+            console.print(Markdown(result))
 
 
 if __name__ == "__main__":

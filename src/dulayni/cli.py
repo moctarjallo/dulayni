@@ -15,7 +15,8 @@ from dulayni.mcp.client import run_agent
               type=click.Choice(["json", "rich"]))
 def main(model: str, openai_api_key: str, path2mcp_servers_file: Optional[str], 
          startup_timeout: float, parallel_tool_calls: bool, print_mode: str):
-    result = asyncio.run(run_agent())
+
+    result = asyncio.run(run_agent(role="user", content="what's (3 + 5) x 12?", thread_id="123", memory_db="dulayni_memory.sqlite"))
     print(result['messages'][-1].content)
 
 if __name__ == "__main__":

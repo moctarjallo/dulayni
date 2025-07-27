@@ -16,8 +16,8 @@ from dulayni.mcp.client import run_agent
 def main(model: str, openai_api_key: str, path2mcp_servers_file: Optional[str], 
          startup_timeout: float, parallel_tool_calls: bool, print_mode: str):
 
-    result = asyncio.run(run_agent(role="user", content="what's (3 + 5) x 12?", thread_id="123", memory_db="dulayni_memory.sqlite"))
-    print(result['messages'][-1].content)
+    result = asyncio.run(run_agent(role="user", model="gpt-4o-mini", content="what's (3 + 5) x 12?", system_prompt="You are a helpul agent", thread_id="123", memory_db="dulayni_memory.sqlite"))
+    print(result)
 
 if __name__ == "__main__":
     main()

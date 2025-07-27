@@ -2,6 +2,8 @@ from typing import Optional
 import click
 import asyncio
 
+from dulayni.mcp.client import run_agent
+
 @click.command()
 @click.option("--model", "-m", default="gpt-4.1-mini", 
               type=click.Choice(["gpt-4.1", "gpt-4.1-mini"]))
@@ -13,8 +15,8 @@ import asyncio
               type=click.Choice(["json", "rich"]))
 def main(model: str, openai_api_key: str, path2mcp_servers_file: Optional[str], 
          startup_timeout: float, parallel_tool_calls: bool, print_mode: str):
-    print(f"OPENAI_API_KEY: {openai_api_key}")
-    pass
+    result = asyncio.run(run_agent())
+    print(result['messages'][-1].content)
 
 if __name__ == "__main__":
     main()

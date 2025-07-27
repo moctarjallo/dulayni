@@ -5,12 +5,16 @@ from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 import asyncio
 
-model = ChatOpenAI(model="gpt-4o")
+from dotenv import load_dotenv
+
+_ = load_dotenv()
+
+model = ChatOpenAI(model="gpt-4o-mini")
 
 server_params = StdioServerParameters(
     command="python",
     # Make sure to update to the full absolute path to your math_server.py file
-    args=["src/dulayni/server.py"],
+    args=["src/dulayni/mcp/server.py"],
 )
 
 async def run_agent():

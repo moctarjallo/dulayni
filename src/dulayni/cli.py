@@ -12,15 +12,18 @@ from dulayni.mcp.client import run_agent
               type=click.Path(exists=True))
 @click.option("--startup_timeout", "-t", default=10.0, type=float)
 @click.option("--parallel_tool_calls", "-p", is_flag=True)
+@click.option("--agent_type", "-a", default="react")
 @click.option("--print_mode", default="rich",
               type=click.Choice(["json", "rich"]))
 def main(model: str, openai_api_key: str,
          path2mcp_servers_file: str,
          startup_timeout: float,
          parallel_tool_calls: bool,
+         agent_type: str,
          print_mode: str):
     # You can load the API key in env or pass it into run_agent if needed
     result = asyncio.run(run_agent(
+        agent_type=agent_type,
         role="user",
         model=model,
         content="what's (3 + 5) x 12?",

@@ -12,6 +12,7 @@ dependencies = [
     "click>=8.2.1",
     "google-genai>=1.25.0",
     "mcp>=1.11.0",
+    "mcp[cli]",
     "openai>=1.95.1",
     "python-dotenv>=1.1.1",
     "pyzmq>=27.0.0",

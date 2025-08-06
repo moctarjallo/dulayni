@@ -17,5 +17,18 @@ def multiply(a: int, b: int) -> int:
 def get_weather(location: str) -> str:
     return f"The weather in {location} today is very hot."
 
+@mcp.tool()
+def galsenai():
+    """Return information about Galsen AI"""
+    text = ""
+
+    with open('./galsenai.txt', 'r') as f:
+
+        text = f.read()
+
+    print(f"text: {text}")
+
+    return text
+
 if __name__ == "__main__":
     mcp.run(transport='streamable-http')

@@ -21,7 +21,7 @@ class Agent:
         return cls(role, graph, parallel_tool_calls)
 
     @staticmethod
-    def _load_server_params(config_source, server_name: str = "default"):
+    def _load_server_params(config_source, server_name: str = ""):
         if isinstance(config_source, dict):
             cfg = config_source
         elif isinstance(config_source, str):

@@ -1,6 +1,6 @@
-from dulayni.agents.graph.state import DeepAgentState
-from dulayni.agents.prompts import TASK_DESCRIPTION_PREFIX, TASK_DESCRIPTION_SUFFIX, base_prompt
-from dulayni.agents.tools import edit_file, ls, read_file, write_file, write_todos
+from dulayni.graph.state import DeepAgentState
+from dulayni.prompts import TASK_DESCRIPTION_PREFIX, TASK_DESCRIPTION_SUFFIX, base_prompt
+from dulayni.tools import edit_file, ls, read_file, write_file, write_todos
 from .agent import Agent, SubAgent
 
 from langgraph.prebuilt import create_react_agent

@@ -22,6 +22,7 @@ dependencies = [
     "langchain-mcp-adapters",
     "langgraph",
     "langgraph-checkpoint-sqlite",
+    "deepagents",
 ]
 
 [project.scripts]

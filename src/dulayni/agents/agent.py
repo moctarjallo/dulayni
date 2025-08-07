@@ -1,12 +1,13 @@
 import json
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import ChatOpenAI
 
 
 class Agent:
-    def __init__(self, role, graph, parallel_tool_calls):
+    def __init__(self, role, graph, parallel_tool_calls=0):
         self.role = role
         self.graph = graph
         self.parallel_tool_calls = parallel_tool_calls
@@ -46,5 +47,11 @@ class Agent:
         return result['messages'][-1].content
 
     @staticmethod
-    def _build_graph(model, tools, prompt, checkpointer):
+    def _build_graph(model, tools, prompt, checkpointer, state_schema=None):
         raise NotImplementedError("Subclasses must implement _build_graph")
+
+class SubAgent(TypedDict):
+    name: str
+    description: str
+    prompt: str
+    tools: NotRequired[list[str]]

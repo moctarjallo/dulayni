@@ -35,7 +35,7 @@ def main(model: str, openai_api_key: str,
             content=content,
             system_prompt="You are a helpful agent",
             thread_id="123",
-            memory_db="dulayni_memory.sqlite",
+            memory_db="memory.sqlite",
             mcp_servers_file=path2mcp_servers_file,
             startup_timeout=startup_timeout,
             parallel_tool_calls=parallel_tool_calls

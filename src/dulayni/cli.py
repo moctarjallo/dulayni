@@ -20,20 +20,26 @@ console = Console()
 @click.option("--agent_type", "-a", default="react")
 @click.option("--print_mode", default="rich",
               type=click.Choice(["json", "rich"]))
+@click.option("--system_prompt", "-s", default=None,
+              help="Custom system prompt for the agent")
 def main(model: str, openai_api_key: str,
          query: str,
          path2mcp_servers_file: str,
          startup_timeout: float,
          parallel_tool_calls: bool,
          agent_type: str,
-         print_mode: str):
+         print_mode: str,
+         system_prompt: Optional[str]):
     async def handle_query(content: str):
+        # Use custom system prompt if provided, otherwise default
+        effective_system_prompt = system_prompt if system_prompt is not None else "You are a helpful agent"
+
         return await run_agent(
             agent_type=agent_type,
             role="user",
             model=model,
             content=content,
-            system_prompt="You are a helpful agent",
+            system_prompt=effective_system_prompt,
             thread_id="123",
             memory_db="memory.sqlite",
             mcp_servers_file=path2mcp_servers_file,

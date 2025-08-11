@@ -22,10 +22,15 @@ dependencies = [
     "langchain-mcp-adapters",
     "langgraph",
     "langgraph-checkpoint-sqlite",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.29.0",
+    "requests>=2.31.0",
+    "pydantic>=2.7.0",
 ]
 
 [project.scripts]
 dulayni = "dulayni:main"
+dulayni-server = "dulayni.api.cli:server"
 
 [build-system]
 requires = ["hatchling"]

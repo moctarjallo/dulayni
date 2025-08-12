@@ -19,6 +19,7 @@ async def run_agent(
     memory_db: str,
     mcp_servers_file: str,
     startup_timeout: float = 10.0,
+    subagents: list = [],
     parallel_tool_calls: bool = False,
 ):
     async with AsyncSqliteSaver.from_conn_string(memory_db) as checkpointer:
@@ -30,6 +31,7 @@ async def run_agent(
             system_prompt=system_prompt,
             mcp_servers_file=mcp_servers_file,
             checkpointer=checkpointer,
+            subagents=subagents,
             parallel_tool_calls=parallel_tool_calls,
         )
 

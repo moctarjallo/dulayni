@@ -27,7 +27,7 @@ class ReactAgent(Agent):
 class DeepAgent(Agent):
     subagents: list[SubAgent] = []
 
-    def __init__(self, role: str, graph, parallel_tool_calls, subagents: list[SubAgent] = None, *args, **kwargs):
+    def __init__(self, role: str='', graph=None, parallel_tool_calls=False, subagents: list[SubAgent] = [], *args, **kwargs):
         super().__init__(role, graph, parallel_tool_calls)
         if subagents is not None:
             DeepAgent.subagents = subagents

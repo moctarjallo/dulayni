@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  dulayni:
+    build: .
+    ports:
+      - "8001:8001"  # MCP server
+      - "8002:8002"  # FastAPI server
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/docs", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

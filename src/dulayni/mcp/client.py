@@ -1,10 +1,11 @@
 import asyncio
 import json
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 
@@ -25,7 +26,7 @@ async def run_agent(
     startup_timeout: float = 10.0,
     subagents: list = [],
     parallel_tool_calls: bool = False,
-):
+):   
     async with AsyncSqliteSaver.from_conn_string(memory_db) as checkpointer:
 
         agent = await create_agent(
@@ -41,48 +42,53 @@ async def run_agent(
 
         return await agent.respond(content, thread_id)
 
-app = FastAPI(title="Dulayni API")
+app = FastAPI(
+    title="Dulayni API",
+    description="RAG agent API server using MCP tools",
+    version="0.1.0"
+)
 
 class AgentRequest(BaseModel):
-    agent_type: str
-    role: str
-    model: str
+    agent_type: str = "react"
+    role: str = "user"
+    model: str = "gpt-4o-mini"
     content: str
-    system_prompt: str
-    thread_id: str
-    memory_db: str
-    mcp_servers_file: str
+    system_prompt: str = "You are a helpful agent"
+    thread_id: str = "default"
+    memory_db: str = "data/memory.sqlite"
+    mcp_servers_file: str = "config/mcp_servers.json"
     startup_timeout: float = 10.0
     parallel_tool_calls: bool = False
 
+@app.get("/")
+async def root():
+    return {"message": "Dulayni API Server", "version": "0.1.0"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
 @app.post("/run_agent")
 async def run_agent_endpoint(request: AgentRequest):
-    response = await run_agent(
-        agent_type=request.agent_type,
-        role=request.role,
-        model=request.model,
-        content=request.content,
-        system_prompt=request.system_prompt,
-        thread_id=request.thread_id,
-        memory_db=request.memory_db,
-        mcp_servers_file=request.mcp_servers_file,
-        parallel_tool_calls=request.parallel_tool_calls,
-    )
-    return {"response": response}
+    try:
+        response = await run_agent(
+            agent_type=request.agent_type,
+            role=request.role,
+            model=request.model,
+            content=request.content,
+            system_prompt=request.system_prompt,
+            thread_id=request.thread_id,
+            memory_db=request.memory_db,
+            mcp_servers_file=request.mcp_servers_file,
+            parallel_tool_calls=request.parallel_tool_calls,
+        )
+        return {"response": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-def start_server(host: str = "127.0.0.1", port: int = 8002):
+def start_server(host: str = "0.0.0.0", port: int = 8002):
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    result = asyncio.run(run_agent(
-        agent_type="react",
-        role="user",
-        model="gpt-4o-mini",
-        content="what's (3 + 5) x 12?",
-        system_prompt="You are a helpful agent",
-        thread_id=123,
-        memory_db="dulayni_memory.sqlite",
-        mcp_servers_file="config/mcp_servers.json",
-    ))
-    print(result)
+    start_server()

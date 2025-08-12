@@ -1,1 +1,1 @@
-from .cli import main
+from dulayni.mcp.cli import server

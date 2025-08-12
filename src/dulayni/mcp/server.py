@@ -15,7 +15,8 @@ def multiply(a: int, b: int) -> int:
 
 @mcp.tool()
 def get_weather(location: str) -> str:
+    """Get weather information for a location"""
     return f"The weather in {location} today is very hot."
 
 if __name__ == "__main__":
-    mcp.run(transport='streamable-http', stateless_http=True, host="127.0.0.1", port=8001)
+    mcp.run(transport='streamable-http', stateless_http=True, host="0.0.0.0", port=8001)

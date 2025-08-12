@@ -1,7 +1,7 @@
 # math_server.py
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
-mcp = FastMCP("Math", stateless_http=True, host="127.0.0.1", port=8001)
+mcp = FastMCP("Math")
 
 @mcp.tool()
 def add(a: int, b: int) -> int:
@@ -18,4 +18,4 @@ def get_weather(location: str) -> str:
     return f"The weather in {location} today is very hot."
 
 if __name__ == "__main__":
-    mcp.run(transport='streamable-http')
+    mcp.run(transport='streamable-http', stateless_http=True, host="127.0.0.1", port=8001)

@@ -29,7 +29,7 @@ dependencies = [
 
 [project.scripts]
 dulayni = "dulayni:main"
-dulayni-server = "dulayni.api.cli:server"
+dulayni-server = "dulayni.mcp.cli:server"
 
 [build-system]
 requires = ["hatchling"]

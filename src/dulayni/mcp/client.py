@@ -13,7 +13,8 @@ from dulayni.agents import create_agent
 
 _ = load_dotenv()
 
- 
+DEBUG_TOOLS = False
+
 async def run_agent(
     agent_type: str,
     role: str,
@@ -26,7 +27,7 @@ async def run_agent(
     startup_timeout: float = 10.0,
     subagents: list = [],
     parallel_tool_calls: bool = False,
-):   
+):
     async with AsyncSqliteSaver.from_conn_string(memory_db) as checkpointer:
 
         agent = await create_agent(
@@ -38,6 +39,7 @@ async def run_agent(
             checkpointer=checkpointer,
             subagents=subagents,
             parallel_tool_calls=parallel_tool_calls,
+            debug_tools=DEBUG_TOOLS,
         )
 
         return await agent.respond(content, thread_id)
@@ -60,13 +62,14 @@ class AgentRequest(BaseModel):
     startup_timeout: float = 10.0
     parallel_tool_calls: bool = False
 
+
 @app.get("/")
 async def root():
-    return {"message": "Dulayni API Server", "version": "0.1.0"}
+    return {"message": "Dulayni API Server", "version": "0.1.0", "debug_tools": DEBUG_TOOLS}
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    return {"status": "healthy", "debug_tools": DEBUG_TOOLS}
 
 @app.post("/run_agent")
 async def run_agent_endpoint(request: AgentRequest):
@@ -86,7 +89,9 @@ async def run_agent_endpoint(request: AgentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def start_client(host: str = "0.0.0.0", port: int = 8002):
+def start_client(host: str = "0.0.0.0", port: int = 8002, debug_tools: bool = False):
+    global DEBUG_TOOLS
+    DEBUG_TOOLS = debug_tools
     uvicorn.run(app, host=host, port=port)
 
 

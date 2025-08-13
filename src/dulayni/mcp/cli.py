@@ -12,7 +12,8 @@ def server(server_host, server_port):
 @click.command()
 @click.option("--client_host", default="127.0.0.1", help="Host to bind")
 @click.option("--client_port", default=8002, help="Port to bind")
-def client(client_host, client_port):
-    """Start the Dulayni API server"""
+@click.option("--debug-tools", is_flag=True, help="Enable debug mode for tools")
+def client(client_host, client_port, debug_tools):
+    """Start the Dulayni API client"""
     from dulayni.mcp.client import start_client
-    start_client(client_host, client_port)
+    start_client(client_host, client_port, debug_tools)

@@ -86,9 +86,9 @@ async def run_agent_endpoint(request: AgentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def start_server(host: str = "0.0.0.0", port: int = 8002):
+def start_client(host: str = "0.0.0.0", port: int = 8002):
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    start_server()
+    start_client()

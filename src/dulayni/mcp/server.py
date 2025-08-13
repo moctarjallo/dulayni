@@ -18,5 +18,8 @@ def get_weather(location: str) -> str:
     """Get weather information for a location"""
     return f"The weather in {location} today is very hot."
 
+def start_server(host: str = "0.0.0.0", port: int = 8001):
+    mcp.run(transport='streamable-http', stateless_http=True, host=host, port=port)
+
 if __name__ == "__main__":
-    mcp.run(transport='streamable-http', stateless_http=True, host="0.0.0.0", port=8001)
+    start_server()

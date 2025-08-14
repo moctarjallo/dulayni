@@ -99,11 +99,11 @@ async def run_agent_endpoint(request: AgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def start_client(host: str = "0.0.0.0", port: int = 8002, debug_tools: bool = False):
+def start_api(host: str = "0.0.0.0", port: int = 8002, debug_tools: bool = False):
     global DEBUG_TOOLS
     DEBUG_TOOLS = debug_tools
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    start_client()
+    start_api()

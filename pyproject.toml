@@ -32,7 +32,7 @@ dependencies = [
 
 [project.scripts]
 dulayni-server = "dulayni:server"
-dulayni-client = "dulayni:client"
+dulayni-api = "dulayni:api"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,2 +1,2 @@
-from dulayni.mcp.cli import server
-from dulayni.mcp.cli import client
+from dulayni.cli import server
+from dulayni.cli import client

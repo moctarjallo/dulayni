@@ -2,8 +2,10 @@ import asyncio
 import json
 import os
 from pathlib import Path
+from typing import Optional, List
 from dotenv import load_dotenv
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver  # Added
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -24,26 +26,43 @@ async def run_agent(
     system_prompt: str,
     thread_id: str,
     memory_db: str,
+    pg_uri: Optional[str],  # New parameter
     mcp_servers_file: str,
     startup_timeout: float = 10.0,
     subagents: list = [],
     parallel_tool_calls: bool = False,
 ):
-    async with AsyncSqliteSaver.from_conn_string(memory_db) as checkpointer:
-
-        agent = await create_agent(
-            agent_type=agent_type,
-            role=role,
-            model=model,
-            system_prompt=system_prompt,
-            mcp_servers_file=mcp_servers_file,
-            checkpointer=checkpointer,
-            subagents=subagents,
-            parallel_tool_calls=parallel_tool_calls,
-            debug_tools=DEBUG_TOOLS,
-        )
-
-        return await agent.respond(content, thread_id)
+    # Use PostgreSQL if pg_uri is provided
+    if pg_uri:
+        async with AsyncPostgresSaver.from_conn_string(pg_uri) as checkpointer:
+            await checkpointer.setup()
+            agent = await create_agent(
+                agent_type=agent_type,
+                role=role,
+                model=model,
+                system_prompt=system_prompt,
+                mcp_servers_file=mcp_servers_file,
+                checkpointer=checkpointer,
+                subagents=subagents,
+                parallel_tool_calls=parallel_tool_calls,
+                debug_tools=DEBUG_TOOLS,
+            )
+            return await agent.respond(content, thread_id)
+    # Fall back to SQLite
+    else:
+        async with AsyncSqliteSaver.from_conn_string(memory_db) as checkpointer:
+            agent = await create_agent(
+                agent_type=agent_type,
+                role=role,
+                model=model,
+                system_prompt=system_prompt,
+                mcp_servers_file=mcp_servers_file,
+                checkpointer=checkpointer,
+                subagents=subagents,
+                parallel_tool_calls=parallel_tool_calls,
+                debug_tools=DEBUG_TOOLS,
+            )
+            return await agent.respond(content, thread_id)
 
 
 app = FastAPI(
@@ -61,6 +80,7 @@ class AgentRequest(BaseModel):
     system_prompt: str = "You are a helpful agent"
     thread_id: str = "default"
     memory_db: str = "data/memory.sqlite"
+    pg_uri: Optional[str] = None  # New field
     mcp_servers_file: str = "config/mcp_servers.json"
     startup_timeout: float = 10.0
     parallel_tool_calls: bool = False
@@ -91,6 +111,7 @@ async def run_agent_endpoint(request: AgentRequest):
             system_prompt=request.system_prompt,
             thread_id=request.thread_id,
             memory_db=request.memory_db,
+            pg_uri=request.pg_uri,  # Pass pg_uri
             mcp_servers_file=request.mcp_servers_file,
             parallel_tool_calls=request.parallel_tool_calls,
         )

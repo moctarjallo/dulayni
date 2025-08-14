@@ -1,4 +1,4 @@
-from dulayni.graph.state import DeepAgentState
+from dulayni.graph.state import DeepReactState
 from dulayni.prompts import TASK_DESCRIPTION_PREFIX, TASK_DESCRIPTION_SUFFIX, base_prompt
 from dulayni.tools import edit_file, ls, read_file, write_file, write_todos
 from .agent import Agent, SubAgent
@@ -13,7 +13,7 @@ from langgraph.types import Command
 
 from langgraph.prebuilt import InjectedState
 
-class ReactAgent(Agent):
+class React(Agent):
     @staticmethod
     def _build_graph(model, tools, prompt, checkpointer, state_schema=None):
         return create_react_agent(
@@ -24,13 +24,13 @@ class ReactAgent(Agent):
             state_schema=state_schema
         )
     
-class DeepAgent(Agent):
+class DeepReact(Agent):
     subagents: list[SubAgent] = []
 
     def __init__(self, role: str='', graph=None, parallel_tool_calls=False, subagents: list[SubAgent] = [], *args, **kwargs):
         super().__init__(role, graph, parallel_tool_calls)
         if subagents is not None:
-            DeepAgent.subagents = subagents
+            DeepReact.subagents = subagents
 
 
     @staticmethod
@@ -63,7 +63,7 @@ class DeepAgent(Agent):
         def task(
             description: str,
             subagent_type: str,
-            state: Annotated[DeepAgentState, InjectedState],
+            state: Annotated[DeepReactState, InjectedState],
             tool_call_id: Annotated[str, InjectedToolCallId],
         ):
             if subagent_type not in agents:
@@ -102,15 +102,15 @@ class DeepAgent(Agent):
                         - `description` (used by the main agent to decide whether to call the sub agent)
                         - `prompt` (used as the system prompt in the subagent)
                         - (optional) `tools`
-                state_schema: The schema of the deep agent. Should subclass from DeepAgentState
+                state_schema: The schema of the deep agent. Should subclass from DeepReactState
             """
         prompt = prompt + base_prompt
         built_in_tools = [write_todos, write_file, read_file, ls, edit_file]
-        state_schema = state_schema or DeepAgentState
-        task_tool = DeepAgent._create_task_tool(
+        state_schema = state_schema or DeepReactState
+        task_tool = DeepReact._create_task_tool(
             list(tools) + built_in_tools,
             prompt,
-            DeepAgent.subagents or [],
+            DeepReact.subagents or [],
             model,
             state_schema
         )

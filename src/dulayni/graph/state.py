@@ -20,6 +20,6 @@ def file_reducer(l, r):
         return {**l, **r}
 
 
-class DeepAgentState(AgentState):
+class DeepReactState(AgentState):
     todos: NotRequired[list[Todo]]
     files: Annotated[NotRequired[dict[str, str]], file_reducer]

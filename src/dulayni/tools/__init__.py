@@ -9,7 +9,7 @@ from dulayni.prompts import (
     EDIT_DESCRIPTION,
     TOOL_DESCRIPTION,
 )
-from dulayni.graph.state import Todo, DeepAgentState
+from dulayni.graph.state import Todo, DeepReactState
 
 
 @tool(description=WRITE_TODOS_DESCRIPTION)
@@ -26,7 +26,7 @@ def write_todos(
     )
 
 
-def ls(state: Annotated[DeepAgentState, InjectedState]) -> list[str]:
+def ls(state: Annotated[DeepReactState, InjectedState]) -> list[str]:
     """List all files"""
     return list(state.get("files", {}).keys())
 
@@ -34,7 +34,7 @@ def ls(state: Annotated[DeepAgentState, InjectedState]) -> list[str]:
 @tool(description=TOOL_DESCRIPTION)
 def read_file(
     file_path: str,
-    state: Annotated[DeepAgentState, InjectedState],
+    state: Annotated[DeepReactState, InjectedState],
     offset: int = 0,
     limit: int = 2000,
 ) -> str:
@@ -80,7 +80,7 @@ def read_file(
 def write_file(
     file_path: str,
     content: str,
-    state: Annotated[DeepAgentState, InjectedState],
+    state: Annotated[DeepReactState, InjectedState],
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """Write to a file."""
@@ -101,7 +101,7 @@ def edit_file(
     file_path: str,
     old_string: str,
     new_string: str,
-    state: Annotated[DeepAgentState, InjectedState],
+    state: Annotated[DeepReactState, InjectedState],
     tool_call_id: Annotated[str, InjectedToolCallId],
     replace_all: bool = False,
 ) -> str:

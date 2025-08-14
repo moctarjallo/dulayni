@@ -15,6 +15,7 @@ _ = load_dotenv()
 
 DEBUG_TOOLS = False
 
+
 async def run_agent(
     agent_type: str,
     role: str,
@@ -44,11 +45,13 @@ async def run_agent(
 
         return await agent.respond(content, thread_id)
 
+
 app = FastAPI(
     title="Dulayni API",
     description="RAG agent API server using MCP tools",
-    version="0.1.0"
+    version="0.1.0",
 )
+
 
 class AgentRequest(BaseModel):
     agent_type: str = "react"
@@ -65,11 +68,17 @@ class AgentRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "Dulayni API Server", "version": "0.1.0", "debug_tools": DEBUG_TOOLS}
+    return {
+        "message": "Dulayni API Server",
+        "version": "0.1.0",
+        "debug_tools": DEBUG_TOOLS,
+    }
+
 
 @app.get("/health")
 async def health():
     return {"status": "healthy", "debug_tools": DEBUG_TOOLS}
+
 
 @app.post("/run_agent")
 async def run_agent_endpoint(request: AgentRequest):
@@ -88,6 +97,7 @@ async def run_agent_endpoint(request: AgentRequest):
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 def start_client(host: str = "0.0.0.0", port: int = 8002, debug_tools: bool = False):
     global DEBUG_TOOLS

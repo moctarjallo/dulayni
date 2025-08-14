@@ -1,5 +1,9 @@
 from dulayni.graph.state import DeepReactState
-from dulayni.prompts import TASK_DESCRIPTION_PREFIX, TASK_DESCRIPTION_SUFFIX, base_prompt
+from dulayni.prompts import (
+    TASK_DESCRIPTION_PREFIX,
+    TASK_DESCRIPTION_SUFFIX,
+    base_prompt,
+)
 from dulayni.tools import edit_file, ls, read_file, write_file, write_todos
 from .agent import Agent, SubAgent
 
@@ -13,6 +17,7 @@ from langgraph.types import Command
 
 from langgraph.prebuilt import InjectedState
 
+
 class React(Agent):
     @staticmethod
     def _build_graph(model, tools, prompt, checkpointer, state_schema=None):
@@ -21,22 +26,34 @@ class React(Agent):
             prompt=prompt,
             tools=tools,
             checkpointer=checkpointer,
-            state_schema=state_schema
+            state_schema=state_schema,
         )
-    
+
+
 class DeepReact(Agent):
     subagents: list[SubAgent] = []
 
-    def __init__(self, role: str='', graph=None, parallel_tool_calls=False, subagents: list[SubAgent] = [], *args, **kwargs):
+    def __init__(
+        self,
+        role: str = "",
+        graph=None,
+        parallel_tool_calls=False,
+        subagents: list[SubAgent] = [],
+        *args,
+        **kwargs,
+    ):
         super().__init__(role, graph, parallel_tool_calls)
         if subagents is not None:
             DeepReact.subagents = subagents
 
-
     @staticmethod
-    def _create_task_tool(tools, instructions, subagents: list[SubAgent], model, state_schema):
+    def _create_task_tool(
+        tools, instructions, subagents: list[SubAgent], model, state_schema
+    ):
         agents = {
-            "general-purpose": create_react_agent(model, prompt=instructions, tools=tools)
+            "general-purpose": create_react_agent(
+                model, prompt=instructions, tools=tools
+            )
         }
         tools_by_name = {}
         for tool_ in tools:
@@ -88,22 +105,22 @@ class DeepReact(Agent):
     def _build_graph(model, tools, prompt, checkpointer, state_schema=None):
         """Create a deep agent.
 
-            This agent will by default have access to a tool to write todos (write_todos),
-            and then four file editing tools: write_file, ls, read_file, edit_file.
+        This agent will by default have access to a tool to write todos (write_todos),
+        and then four file editing tools: write_file, ls, read_file, edit_file.
 
-            Args:
-                tools: The additional tools the agent should have access to.
-                instructions: The additional instructions the agent should have. Will go in
-                    the system prompt.
-                model: The model to use.
-                subagents: The subagents to use. Each subagent should be a dictionary with the
-                    following keys:
-                        - `name`
-                        - `description` (used by the main agent to decide whether to call the sub agent)
-                        - `prompt` (used as the system prompt in the subagent)
-                        - (optional) `tools`
-                state_schema: The schema of the deep agent. Should subclass from DeepReactState
-            """
+        Args:
+            tools: The additional tools the agent should have access to.
+            instructions: The additional instructions the agent should have. Will go in
+                the system prompt.
+            model: The model to use.
+            subagents: The subagents to use. Each subagent should be a dictionary with the
+                following keys:
+                    - `name`
+                    - `description` (used by the main agent to decide whether to call the sub agent)
+                    - `prompt` (used as the system prompt in the subagent)
+                    - (optional) `tools`
+            state_schema: The schema of the deep agent. Should subclass from DeepReactState
+        """
         prompt = prompt + base_prompt
         built_in_tools = [write_todos, write_file, read_file, ls, edit_file]
         state_schema = state_schema or DeepReactState
@@ -112,10 +129,10 @@ class DeepReact(Agent):
             prompt,
             DeepReact.subagents or [],
             model,
-            state_schema
+            state_schema,
         )
         all_tools = built_in_tools + list(tools) + [task_tool]
-        
+
         return create_react_agent(
             model,
             prompt=prompt,

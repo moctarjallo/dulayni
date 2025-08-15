@@ -30,6 +30,7 @@ dependencies = [
     "black>=25.1.0",
     "langgraph-checkpoint-postgres>=2.0.23",
     "psycopg[binary]>=3.0.0",
+    "claude-code-sdk>=0.0.20",
 ]
 
 [project.scripts]

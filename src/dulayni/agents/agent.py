@@ -21,13 +21,13 @@ class Agent:
         role,
         model_name,
         system_prompt,
-        mcp_servers_file,
+        mcp_servers,
         checkpointer,
         parallel_tool_calls,
         debug_tools=False,
     ):
         model = ChatOpenAI(model=model_name)
-        srv = cls._load_server_params(mcp_servers_file)
+        srv = cls._load_server_params(mcp_servers)
         client = MultiServerMCPClient(srv)
         tools = await client.get_tools()
 
@@ -73,7 +73,7 @@ class Agent:
                 cfg = json.loads(Path(config_source).read_text())
         else:
             raise TypeError(
-                "mcp_servers_file must be a dict, JSON string, or file path string"
+                "mcp_servers must be a dict, JSON string, or file path string"
             )
 
         if server_name:

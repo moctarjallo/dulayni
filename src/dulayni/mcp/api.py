@@ -30,8 +30,8 @@ DEFAULT_CONFIG = {
     "thread_id": SERVER_CONFIG.get("memory", {}).get("thread_id", "default"),
     "memory_db": SERVER_CONFIG.get("memory", {}).get("memory_db", "data/memory.sqlite"),
     "pg_uri": SERVER_CONFIG.get("memory", {}).get("pg_uri"),
-    "mcp_servers_file": SERVER_CONFIG.get(
-        "mcp_servers_file", "config/mcp_servers.json"
+    "mcp_servers": SERVER_CONFIG.get(
+        "mcp_servers", "config/mcp_servers.json"
     ),
     "startup_timeout": SERVER_CONFIG.get("agent", {}).get("startup_timeout", 10.0),
     "parallel_tool_calls": SERVER_CONFIG.get("agent", {}).get(
@@ -49,7 +49,7 @@ async def run_agent(
     thread_id: str,
     memory_db: str,
     pg_uri: Optional[str],
-    mcp_servers_file: str,
+    mcp_servers: str,
     startup_timeout: float = 10.0,
     subagents: list = [],
     parallel_tool_calls: bool = False,
@@ -63,7 +63,7 @@ async def run_agent(
                 role=role,
                 model=model,
                 system_prompt=system_prompt,
-                mcp_servers_file=mcp_servers_file,
+                mcp_servers=mcp_servers,
                 checkpointer=checkpointer,
                 subagents=subagents,
                 parallel_tool_calls=parallel_tool_calls,
@@ -78,7 +78,7 @@ async def run_agent(
                 role=role,
                 model=model,
                 system_prompt=system_prompt,
-                mcp_servers_file=mcp_servers_file,
+                mcp_servers=mcp_servers,
                 checkpointer=checkpointer,
                 subagents=subagents,
                 parallel_tool_calls=parallel_tool_calls,
@@ -115,8 +115,8 @@ class AgentRequest(BaseModel):
     pg_uri: Optional[str] = Field(
         default=None, description="PostgreSQL URI for memory storage"
     )
-    mcp_servers_file: Optional[str] = Field(
-        default=None, description="Path to MCP servers config file"
+    mcp_servers: Optional[Dict[str, Any]] = Field(
+        default=None, description="MCP servers configuration"
     )
     startup_timeout: Optional[float] = Field(
         default=None, description="Timeout for server startup"
@@ -159,8 +159,8 @@ async def run_agent_endpoint(request: AgentRequest):
             "thread_id": request.thread_id or DEFAULT_CONFIG["thread_id"],
             "memory_db": request.memory_db or DEFAULT_CONFIG["memory_db"],
             "pg_uri": request.pg_uri or DEFAULT_CONFIG["pg_uri"],
-            "mcp_servers_file": request.mcp_servers_file
-            or DEFAULT_CONFIG["mcp_servers_file"],
+            "mcp_servers": request.mcp_servers
+            or DEFAULT_CONFIG["mcp_servers"],
             "startup_timeout": request.startup_timeout
             or DEFAULT_CONFIG["startup_timeout"],
             "parallel_tool_calls": (
@@ -179,7 +179,7 @@ async def run_agent_endpoint(request: AgentRequest):
             thread_id=config["thread_id"],
             memory_db=config["memory_db"],
             pg_uri=config["pg_uri"],
-            mcp_servers_file=config["mcp_servers_file"],
+            mcp_servers=config["mcp_servers"],
             parallel_tool_calls=config["parallel_tool_calls"],
         )
 

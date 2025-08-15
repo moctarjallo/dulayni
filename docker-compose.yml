@@ -2,8 +2,8 @@ services:
   dulayni:
     build: .
     ports:
-      - "8001:8001"  # MCP server
-      - "8002:8002"  # FastAPI server
+      - "8001:8001"
+      - "8002:8002"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DULAYNI_ENV=${DULAYNI_ENV:-development}
@@ -12,6 +12,8 @@ services:
       - ./data:/app/data
       - ./config:/app/config
     restart: unless-stopped
+    tty: true
+    stdin_open: true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health", "||", "exit", "1"]
       interval: 30s

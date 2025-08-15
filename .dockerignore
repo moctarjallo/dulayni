@@ -77,3 +77,9 @@ dulayni_client/
 
 # Data directory (will be mounted)
 data/
+
+# uv specific
+.uv-cache/
+
+# Old requirements.txt (no longer needed)
+requirements.txt

@@ -150,7 +150,6 @@ async def health():
 async def run_agent_endpoint(request: AgentRequest):
     try:
         # Merge request with server defaults
-        import ipdb;ipdb.set_trace()
         config = {
             "agent_type": request.agent_type or DEFAULT_CONFIG["agent_type"],
             "role": request.role,

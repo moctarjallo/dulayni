@@ -1,8 +1,8 @@
 [project]
 name = "dulayni"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "RAG agent CLI tool and Python library using MCP servers"
+# readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
     { name = "moctarjallo", email = "moctar.diallo@kajande.com" }
 ]
@@ -29,12 +29,38 @@ dependencies = [
     "pydantic>=2.7.0",
     "black>=25.1.0",
     "langgraph-checkpoint-postgres>=2.0.23",
+    "psycopg[binary]>=3.0.0",
 ]
 
 [project.scripts]
-dulayni-server = "dulayni:server"
-dulayni-api = "dulayni:api"
+dulayni = "dulayni.cli:main"
+dulayni-server = "dulayni.mcp.server:start_server"
+dulayni-api = "dulayni.mcp.api:start_api"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8",
+    "mypy",
+    "pre-commit",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+

@@ -6,14 +6,14 @@ services:
       - "8002:8002"  # FastAPI server
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - PYTHONPATH=/app/src
-      - PYTHONUNBUFFERED=1
+      - DULAYNI_ENV=${DULAYNI_ENV:-development}
+      - DEBUG_TOOLS=${DEBUG_TOOLS:-false}
     volumes:
       - ./data:/app/data
       - ./config:/app/config
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/docs", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health", "||", "exit", "1"]
       interval: 30s
       timeout: 10s
       retries: 3

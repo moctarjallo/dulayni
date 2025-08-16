@@ -30,9 +30,9 @@ DEFAULT_CONFIG = {
     "thread_id": SERVER_CONFIG.get("memory", {}).get("thread_id", "default"),
     "memory_db": SERVER_CONFIG.get("memory", {}).get("memory_db", "data/memory.sqlite"),
     "pg_uri": SERVER_CONFIG.get("memory", {}).get("pg_uri"),
-    "mcp_servers": SERVER_CONFIG.get(
-        "mcp_servers", "config/mcp_servers.json"
-    ),
+    "mcp_servers": {
+        "mcpServers": SERVER_CONFIG.get("mcpServers", {}),
+    },
     "startup_timeout": SERVER_CONFIG.get("agent", {}).get("startup_timeout", 10.0),
     "parallel_tool_calls": SERVER_CONFIG.get("agent", {}).get(
         "parallel_tool_calls", False
@@ -49,7 +49,7 @@ async def run_agent(
     thread_id: str,
     memory_db: str,
     pg_uri: Optional[str],
-    mcp_servers: str,
+    mcp_servers: Dict[str, Any],
     startup_timeout: float = 10.0,
     subagents: list = [],
     parallel_tool_calls: bool = False,
@@ -146,28 +146,39 @@ async def health():
     }
 
 
+def merge_mcp_servers(default_servers: Dict[str, Any], request_servers: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Merge MCP servers with priority given to request values."""
+
+    if not request_servers:
+        return default_servers.copy()
+    
+    merged = default_servers.copy()
+    merged["mcpServers"].update(request_servers)
+    return merged
+
+
 @app.post("/run_agent")
 async def run_agent_endpoint(request: AgentRequest):
     try:
-        # Merge request with server defaults
+        # Merge MCP servers with priority to request values
+        merged_mcp_servers = merge_mcp_servers(
+            DEFAULT_CONFIG["mcp_servers"], 
+            request.mcp_servers
+        )
+        
+        # Merge request with server defaults (request values always have priority)
         config = {
-            "agent_type": request.agent_type or DEFAULT_CONFIG["agent_type"],
-            "role": request.role,
-            "model": request.model or DEFAULT_CONFIG["model"],
-            "content": request.content,
-            "system_prompt": request.system_prompt or DEFAULT_CONFIG["system_prompt"],
-            "thread_id": request.thread_id or DEFAULT_CONFIG["thread_id"],
-            "memory_db": request.memory_db or DEFAULT_CONFIG["memory_db"],
-            "pg_uri": request.pg_uri or DEFAULT_CONFIG["pg_uri"],
-            "mcp_servers": request.mcp_servers
-            or DEFAULT_CONFIG["mcp_servers"],
-            "startup_timeout": request.startup_timeout
-            or DEFAULT_CONFIG["startup_timeout"],
-            "parallel_tool_calls": (
-                request.parallel_tool_calls
-                if request.parallel_tool_calls is not None
-                else DEFAULT_CONFIG["parallel_tool_calls"]
-            ),
+            "agent_type": request.agent_type if request.agent_type is not None else DEFAULT_CONFIG["agent_type"],
+            "role": request.role,  # role is always required, no default needed
+            "model": request.model if request.model is not None else DEFAULT_CONFIG["model"],
+            "content": request.content,  # content is always required
+            "system_prompt": request.system_prompt if request.system_prompt is not None else DEFAULT_CONFIG["system_prompt"],
+            "thread_id": request.thread_id if request.thread_id is not None else DEFAULT_CONFIG["thread_id"],
+            "memory_db": request.memory_db if request.memory_db is not None else DEFAULT_CONFIG["memory_db"],
+            "pg_uri": request.pg_uri if request.pg_uri is not None else DEFAULT_CONFIG["pg_uri"],
+            "mcp_servers": merged_mcp_servers,
+            "startup_timeout": request.startup_timeout if request.startup_timeout is not None else DEFAULT_CONFIG["startup_timeout"],
+            "parallel_tool_calls": request.parallel_tool_calls if request.parallel_tool_calls is not None else DEFAULT_CONFIG["parallel_tool_calls"],
         }
 
         response = await run_agent(
@@ -180,6 +191,7 @@ async def run_agent_endpoint(request: AgentRequest):
             memory_db=config["memory_db"],
             pg_uri=config["pg_uri"],
             mcp_servers=config["mcp_servers"],
+            startup_timeout=config["startup_timeout"],
             parallel_tool_calls=config["parallel_tool_calls"],
         )
 

@@ -1,25 +1,19 @@
-# math_server.py
 from fastmcp import FastMCP
+from langchain_community.tools import DuckDuckGoSearchRun
 
-mcp = FastMCP("Math")
-
-
-@mcp.tool()
-def add(a: int, b: int) -> int:
-    """Add two numbers"""
-    return a + b
-
-
-@mcp.tool()
-def multiply(a: int, b: int) -> int:
-    """Multiply two numbers"""
-    return a * b
-
+mcp = FastMCP("Dulayni")
 
 @mcp.tool()
 def get_weather(location: str) -> str:
     """Get weather information for a location"""
     return f"The weather in {location} today is very hot."
+
+
+@mcp.tool()
+def search_web(query: str) -> str:
+    """Use this tool to search the web"""
+    search = DuckDuckGoSearchRun()
+    return search.invoke(query)
 
 
 def start_server(host: str = "0.0.0.0", port: int = 8001):

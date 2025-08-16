@@ -1,0 +1,25 @@
+{
+  "openai_api_key": "",
+  "api_url": "http://localhost:8002/run_agent",
+  
+  "agent": {
+    "model": "gpt-4o-mini",
+    "agent_type": "react",
+    "system_prompt": "You are a helpful AI assistant with access to various tools and services.",
+    "startup_timeout": 10.0,
+    "parallel_tool_calls": false
+  },
+  
+  "memory": {
+    "memory_db": "data/memory.sqlite",
+    "pg_uri": null,
+    "thread_id": "default"
+  },
+
+  "mcpServers": {
+    "default": {
+      "url": "http://localhost:8001/mcp",
+      "transport": "streamable_http"
+    }
+  }
+}

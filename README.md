@@ -1,6 +1,8 @@
+
+
 # dulayni-client
 
-A CLI client and Python library for interacting with dulayni RAG agents via API.
+A CLI client and Python library for interacting with dulayni RAG agents via API with support for multiple authentication methods.
 
 ---
 
@@ -9,41 +11,71 @@ A CLI client and Python library for interacting with dulayni RAG agents via API.
 1. **Clone the repository**:
 
     ```bash
-   git clone https://github.com/moctarjallo/dulayni-client.git
-   cd dulayni-client
-    ````
+    git clone https://github.com/moctarjallo/dulayni-client.git
+    cd dulayni-client
+    ```
 
 2. **Ensure Python 3.12 is installed**:
 
-   ```bash
-   python --version  # should output 3.12.x
-   ```
+    ```bash
+    python --version  # should output 3.12.x
+    ```
 
 3. **Create a virtual environment & install dependencies**:
 
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -e .
-   ```
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -e .
+    ```
 
-4. **Set environment variables**:
+4. **Initialize your project**:
 
-   ```bash
-   export PHONE_NUMBER="+1234567890"
-   ```
+    ```bash
+    dulayni init
+    ```
 
 ---
 
-## Authentication Flow
+## Authentication Methods
 
-The dulayni-client implements a secure two-factor authentication system:
+The dulayni-client supports two authentication methods:
 
+### 1. WhatsApp Authentication
 1. **Request Verification**: Client sends phone number to `/auth` endpoint
 2. **Receive Code**: Server sends 4-digit verification code via WhatsApp
 3. **Verify Code**: Client submits the code to `/verify` endpoint
 4. **Get Token**: Server returns authentication token for API access
 5. **Make Queries**: All subsequent queries include the auth token
+
+### 2. Dulayni API Key Authentication
+1. **Provide API Key**: Set your Dulayni API key (starts with `sk-`)
+2. **Automatic Authentication**: No verification code needed
+3. **Make Queries**: All queries include the API key in headers
+
+---
+
+## Quick Start
+
+### Project Initialization
+
+Initialize a new dulayni project:
+
+```bash
+dulayni init
+```
+
+This will:
+- Set up Git repository (if not already present)
+- Create configuration files
+- Set up FRPC tunneling for MCP servers
+- Guide you through authentication setup
+
+### Authentication Setup
+
+During initialization, you'll choose between:
+1. WhatsApp authentication (requires phone number)
+2. Dulayni API key authentication (requires API key)
 
 ---
 
@@ -54,13 +86,19 @@ The dulayni-client implements a secure two-factor authentication system:
 ```python
 from dulayni import DulayniClient
 
-# Initialize the client
+# Initialize with WhatsApp authentication
 client = DulayniClient(
     phone_number="+1234567890",
     api_url="http://localhost:8002"
 )
 
-# Authenticate (will prompt for verification code)
+# Or initialize with Dulayni API key
+client = DulayniClient(
+    dulayni_api_key="sk-your-api-key-here",
+    api_url="http://localhost:8002"
+)
+
+# Authenticate (WhatsApp only - will prompt for verification code)
 def get_verification_code():
     return input("Enter 4-digit verification code: ")
 
@@ -72,81 +110,121 @@ client.verify_code(code)
 response = client.query("What's the weather like?")
 print(response)
 
-# Alternative: handle authentication manually
-client = DulayniClient(phone_number="+1234567890")
-auth_result = client.request_verification_code()
-print(f"Verification code sent! Session ID: {auth_result['session_id']}")
+# Check account balance (WhatsApp authentication only)
+balance = client.get_balance()
+print(f"Account balance: {balance['balance']:.2f}")
 
-# User receives code via WhatsApp, then:
-verification_code = "1234"  # Code from WhatsApp
-client.verify_code(verification_code)
-
-# Query with custom parameters
-response = client.query(
-    "Solve this problem",
-    model="gpt-4o",
-    agent_type="deep_react"
-)
-
-# Get full JSON response
-json_response = client.query_json("Tell me a joke")
-
-# Health check with detailed status
-health_status = client.health_check()
-print("Server status:", health_status)
-
-# Simple health check
-if client.is_healthy():
-    print("Server is running!")
-
-# Conversation with thread continuity
-client.set_thread_id("my_conversation")
-client.query("My name is John")
-response = client.query("What's my name?")  # Should remember "John"
+# Stream responses
+for message in client.query_stream("Tell me a story"):
+    print(message["content"])
 ```
 
 ---
 
 ### CLI Usage
 
-The CLI handles the authentication flow automatically by prompting for the verification code.
+#### Project Initialization
+
+```bash
+dulayni init
+```
 
 #### Interactive Mode
 
 Start an interactive REPL:
 
 ```bash
-dulayni-client -p "+1234567890"
+dulayni run
 ```
-
-The client will:
-
-* Send a verification code to your WhatsApp
-* Prompt you to enter the 4-digit code
-* Start the interactive session once authenticated
 
 #### Batch Query Mode
 
 Run a single query non-interactively:
 
 ```bash
-dulayni-client -p "+1234567890" -q "What's (3 + 5) x 12?" --print_mode rich
+dulayni run -q "What's (3 + 5) x 12?" --print_mode rich
 ```
 
-The authentication flow will complete before executing the query.
+#### Check Account Balance
+
+```bash
+dulayni balance
+```
+
+#### Check Project Status
+
+```bash
+dulayni status
+```
+
+#### Logout (Clear WhatsApp Session)
+
+```bash
+dulayni logout
+```
 
 ---
 
-### CLI Options
+### CLI Options for `dulayni run`
 
 * `-m, --model`: Model name (default: `gpt-4o-mini`)
-* `-p, --phone-number`: Your phone number for authentication (**required**)
+* `-p, --phone-number`: Your phone number for authentication
+* `-k, --dulayni-key`: Dulayni API key for authentication
 * `-q, --query`: Query string for batch mode
+* `-md, --markdown`: Path to markdown file containing query
 * `-a, --agent_type`: Agent type (`react` or `deep_react`, default: `react`)
-* `--api_url`: Dulayni server URL (default: `http://localhost:8002/run_agent`)
-* `--thread_id`: Thread ID for conversation continuity (default: `default`)
+* `--api_url`: Dulayni server URL
+* `--thread_id`: Thread ID for conversation continuity
 * `--print_mode`: Output format (`json` or `rich`)
 * `--system_prompt`: Custom system prompt
+* `--stream`: Enable streaming mode
+* `--check-balance`: Check account balance before query
+* `--skip-frpc`: Skip FRPC container check
+
+---
+
+## Project Structure
+
+```
+dulayni-client/
+├── config/
+│   ├── config.json          # Main configuration
+│   ├── development.json     # Development environment config
+│   └── production.json      # Production environment config
+├── src/dulayni/
+│   ├── auth/                # Authentication management
+│   ├── config/              # Configuration management
+│   ├── infrastructure/      # Infrastructure utilities
+│   ├── mcp/                 # Model Context Protocol integration
+│   ├── project/             # Project management
+│   ├── client.py            # Main client class
+│   ├── cli.py               # CLI implementation
+│   └── exceptions.py        # Custom exceptions
+└── .dulayni_key             # API key storage (if using Dulayni auth)
+```
+
+---
+
+## MCP Server Integration
+
+The dulayni-client includes a built-in MCP (Model Context Protocol) filesystem server that provides:
+
+- File reading and writing operations
+- Directory listing and navigation
+- Secure command execution
+- File search and editing capabilities
+
+The MCP server runs automatically on port 8003 when using the CLI.
+
+---
+
+## FRPC Tunneling
+
+For remote MCP server access, the client sets up FRPC (Fast Reverse Proxy Client) tunneling:
+
+- Automatic Docker container setup
+- Secure tunneling to relay server
+- Domain-based routing (`{identifier}.157.230.76.226.nip.io`)
 
 ---
 
@@ -158,8 +236,9 @@ The main client class for interacting with dulayni agents.
 
 #### Constructor Parameters
 
-* `api_url (str)`: URL of the Dulayni API server (without `/run_agent` suffix)
-* `phone_number (str)`: Phone number for authentication
+* `api_url (str)`: URL of the Dulayni API server
+* `phone_number (str)`: Phone number for WhatsApp authentication
+* `dulayni_api_key (str)`: API key for Dulayni authentication
 * `model (str)`: Model name to use (default: `"gpt-4o-mini"`)
 * `agent_type (str)`: Type of agent (`"react"` or `"deep_react"`)
 * `thread_id (str)`: Thread ID for conversation continuity
@@ -181,6 +260,11 @@ The main client class for interacting with dulayni agents.
 
 * `query(content: str, **kwargs) -> str`
 * `query_json(content: str, **kwargs) -> dict`
+* `query_stream(content: str, **kwargs) -> Generator[Dict[str, Any], None, None]`
+
+**Account Management**
+
+* `get_balance() -> Dict[str, Any]` (WhatsApp authentication only)
 
 **Utility**
 
@@ -189,6 +273,7 @@ The main client class for interacting with dulayni agents.
 * `set_thread_id(thread_id: str)`
 * `set_system_prompt(prompt: str)`
 * `set_phone_number(phone_number: str)`
+* `set_dulayni_api_key(dulayni_api_key: str)`
 
 #### Exceptions
 
@@ -196,6 +281,7 @@ The main client class for interacting with dulayni agents.
 * `DulayniConnectionError` – Raised when unable to connect to server
 * `DulayniTimeoutError` – Raised when requests time out
 * `DulayniAuthenticationError` – Raised when authentication fails or is required
+* `DulayniPaymentRequiredError` – Raised when payment is required
 
 ---
 
@@ -208,8 +294,9 @@ See the `examples/` directory for more detailed usage examples.
 ## Requirements
 
 * dulayni server running on the specified API URL
-* Phone number for authentication
+* Phone number for WhatsApp authentication OR Dulayni API key
 * Python 3.12+
+* Docker (for FRPC tunneling)
 
 ---
 
@@ -233,3 +320,29 @@ Format code:
 black src/ tests/
 ruff check src/ tests/
 ```
+
+## Troubleshooting
+
+### FRPC Container Issues
+
+If you encounter issues with the FRPC container:
+
+1. Check if Docker is running: `docker info`
+2. Check FRPC container status: `docker ps -a`
+3. Restart FRPC container: `docker restart frpc`
+
+### Authentication Issues
+
+For WhatsApp authentication issues:
+1. Ensure your phone number is in international format (+1234567890)
+2. Check that you can receive WhatsApp messages
+
+For API key authentication issues:
+1. Ensure your API key starts with `sk-`
+2. Check that the API key has not expired
+
+### MCP Server Issues
+
+If the MCP server fails to start:
+1. Check if port 8003 is available: `lsof -i :8003`
+2. Try running with a different port: `dulayni run --mcp-port 8004`

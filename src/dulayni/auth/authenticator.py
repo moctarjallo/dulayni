@@ -30,18 +30,17 @@ class AuthenticationManager:
             try:
                 balance_info = client.get_balance()
                 self.console.print(f"[cyan]Account balance: {balance_info['balance']:.2f}[/cyan]")
-                self.console.print(f"[cyan]Request cost: {balance_info['request_cost']:.2f}[/cyan]")
                 
                 # Check if balance is sufficient
-                if balance_info['balance'] < balance_info['request_cost']:
-                    self.console.print("[yellow]Warning: Low balance. Consider topping up your account.[/yellow]")
+                if balance_info['balance'] < 50.0:
+                    self.console.print("[yellow]Warning: Low balance (below than 50.0). Consider topping up your account.[/yellow]")
                     
             except DulayniPaymentRequiredError as e:
                 self.console.print(Panel(
                     f"[red]Insufficient balance![/red]\n\n"
-                    f"Current balance: ${e.payment_info.get('current_balance', 0):.2f}\n"
-                    f"Request cost: ${e.payment_info.get('required_balance', 0):.2f}\n\n"
-                    f"Please top up your account at: [blue][link={e.payment_info['payment_url']}]{e.payment_info['payment_url']}[/link][/blue]",
+                    f"Current balance: {e.payment_info.get('current_balance', 0):.2f}\n"
+                    f"Request cost: {e.payment_info.get('required_balance', 0):.2f}\n\n"
+                    f"Please top up your account at: [blue][link={e.payment_info['detail']['payment_url']}]{e.payment_info['detail']['payment_url']}[/link][/blue]",
                     title="[bold red]⚠️  Payment Required[/bold red]",
                     border_style="red"
                 ))
@@ -71,19 +70,18 @@ class AuthenticationManager:
                 # Check balance after successful authentication
                 try:
                     balance_info = client.get_balance()
-                    self.console.print(f"[cyan]Account balance: ${balance_info['balance']:.2f}[/cyan]")
-                    self.console.print(f"[cyan]Request cost: ${balance_info['request_cost']:.2f}[/cyan]")
+                    self.console.print(f"[cyan]Account balance: {balance_info['balance']:.2f}[/cyan]")
                     
                     # Check if balance is sufficient
-                    if balance_info['balance'] < balance_info['request_cost']:
-                        self.console.print("[yellow]Warning: Low balance. Consider topping up your account.[/yellow]")
+                    if balance_info['balance'] < 50.0:
+                        self.console.print("[yellow]Warning: Low balance (below than 50.0). Consider topping up your account.[/yellow]")
                         
                 except DulayniPaymentRequiredError as e:
                     self.console.print(Panel(
                         f"[red]Insufficient balance![/red]\n\n"
-                        f"Current balance: ${e.payment_info.get('current_balance', 0):.2f}\n"
-                        f"Request cost: ${e.payment_info.get('required_balance', 0):.2f}\n\n"
-                        f"Please top up your account at: [blue][link={e.payment_info['payment_url']}]{e.payment_info['payment_url']}[/link][/blue]",
+                        f"Current balance: {e.payment_info.get('current_balance', 0):.2f}\n"
+                        f"Request cost: {e.payment_info.get('required_balance', 0):.2f}\n\n"
+                        f"Please top up your account at: [blue][link={e.payment_info['detail']['payment_url']}]{e.payment_info['detail']['payment_url']}[/link][/blue]",
                         title="[bold red]⚠️  Payment Required[/bold red]",
                         border_style="red"
                     ))

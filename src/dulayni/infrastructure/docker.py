@@ -55,3 +55,15 @@ class DockerManager:
             return container_name in check_result.stdout
         except Exception:
             return False
+
+    def remove_container(self, container_name: str) -> bool:
+        """Remove a Docker container."""
+        try:
+            result = subprocess.run(
+                ["docker", "rm", "-f", container_name],
+                capture_output=True,
+                text=True
+            )
+            return result.returncode == 0
+        except Exception:
+            return False

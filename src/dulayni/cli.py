@@ -7,6 +7,7 @@ import time
 import subprocess
 import shutil
 import hashlib
+import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
 import click
@@ -143,7 +144,7 @@ def init(phone_number: Optional[str], dulayni_key: Optional[str], auth_method: O
 @click.option("--api_url", help="URL of the Dulayni API server")
 @click.option("--thread_id", help="Thread ID for conversation continuity")
 @click.option("--skip-frpc", is_flag=True, help="Skip FRPC container check")
-@click.option("--dulayni-api-key", help="Dulayni API key (override config)")
+@click.option("--dulayni-api-key", help="Dulayni API key for authentication")
 @click.option("--stream", is_flag=True, help="Enable streaming mode")
 @click.option("--check-balance", is_flag=True, help="Check account balance before query")
 def run(stream: bool, check_balance: bool, **cli_args):
@@ -209,7 +210,7 @@ def run(stream: bool, check_balance: bool, **cli_args):
             frpc_identifier = phone_number
         
         # Check if frpc container is running
-        if not frpc_manager.docker_manager.is_container_running("frpc"):
+        if not frpc_manager.docker_manager.is_container_running("dulayni-frpc"):
             console.print("[yellow]FRPC container is not running. Attempting to start it...[/yellow]")
             if not frpc_manager.setup_frpc(frpc_identifier, host="157.230.76.226"):
                 console.print("[yellow]Failed to start FRPC container. Proceeding without it...[/yellow]")
@@ -502,10 +503,59 @@ def run(stream: bool, check_balance: bool, **cli_args):
 
 @cli.command()
 def logout():
-    """Clear authentication session (WhatsApp auth only)."""
+    """Clear authentication session (WhatsApp auth only) and cleanup resources."""
     auth_manager = AuthenticationManager()
     auth_manager.logout()
-    console.print("[green]Logged out successfully[/green]")
+    
+    # Stop FRPC container
+    docker_manager = DockerManager()
+    if docker_manager.is_available():
+        if docker_manager.is_container_running("dulayni-frpc"):
+            console.print("[yellow]Stopping FRPC container...[/yellow]")
+            if docker_manager.remove_container("dulayni-frpc"):
+                console.print("[green]FRPC container stopped and removed.[/green]")
+            else:
+                console.print("[red]Failed to remove FRPC container.[/red]")
+        else:
+            console.print("[yellow]FRPC container is not running.[/yellow]")
+    else:
+        console.print("[yellow]Docker is not available. Skipping FRPC cleanup.[/yellow]")
+
+    # Kill any process running on port 8003 (MCP server)
+    console.print("[yellow]Stopping MCP server...[/yellow]")
+    try:
+        # Cross-platform way to find and kill process on port 8003
+        if sys.platform == "win32":
+            # Windows
+            result = subprocess.run(
+                ["netstat", "-ano", "|", "findstr", ":8003"], 
+                shell=True,
+                capture_output=True, 
+                text=True
+            )
+            if result.stdout:
+                lines = result.stdout.strip().split('\n')
+                for line in lines:
+                    parts = line.split()
+                    pid = parts[-1]
+                    subprocess.run(["taskkill", "/F", "/PID", pid])
+        else:
+            # Unix/Linux/Mac
+            result = subprocess.run(
+                ["lsof", "-ti", ":8003"], 
+                capture_output=True, 
+                text=True
+            )
+            if result.stdout:
+                pids = result.stdout.split()
+                for pid in pids:
+                    subprocess.run(["kill", "-9", pid])
+        
+        console.print("[green]MCP server processes killed.[/green]")
+    except (FileNotFoundError, subprocess.SubprocessError):
+        console.print("[yellow]Could not check for processes on port 8003.[/yellow]")
+
+    console.print("[green]Logged out successfully and cleaned up resources[/green]")
     console.print("[yellow]Note: This only affects WhatsApp authentication sessions.[/yellow]")
     console.print("[yellow]Dulayni API key configurations are not affected.[/yellow]")
 
@@ -534,7 +584,7 @@ def status():
             frpc_manager = FRPCManager()
             frpc_identifier = convert_api_key_to_identifier(dulayni_key)
             console.print(f"FRPC identifier: {frpc_identifier}")
-            if frpc_manager.docker_manager.is_container_running("frpc"):
+            if frpc_manager.docker_manager.is_container_running("dulayni-frpc"):
                 console.print("[green]✓ FRPC container is running[/green]")
             else:
                 console.print("[yellow]⚠ FRPC container is not running[/yellow]")
@@ -556,7 +606,7 @@ def status():
         # Check FRPC status
         if DockerManager.is_available():
             frpc_manager = FRPCManager()
-            if frpc_manager.docker_manager.is_container_running("frpc"):
+            if frpc_manager.docker_manager.is_container_running("dulayni-frpc"):
                 console.print("[green]✓ FRPC container is running[/green]")
             else:
                 console.print("[yellow]⚠ FRPC container is not running[/yellow]")

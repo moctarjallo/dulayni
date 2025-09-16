@@ -17,6 +17,7 @@ from ..infrastructure.frpc import FRPCManager
 from ..auth.authenticator import AuthenticationManager
 
 RELAY_HOST = "157.230.76.226"
+BASE_API_URL = "https://dulayni.kajande.com"
 
 class ProjectInitializer:
     """Handles dulayni project initialization."""
@@ -106,6 +107,7 @@ class ProjectInitializer:
                 config_content = DULAYNI_CONFIG_TEMPLATE.format(
                     api_key_number=api_key_number,
                     relay_host=RELAY_HOST,
+                    base_api_url=BASE_API_URL,
                 )
             self.console.print(f"[green]✓ Created config file for Dulayni API key usage: {config_file}[/green]")
         else:
@@ -115,7 +117,8 @@ class ProjectInitializer:
             config_content = DEFAULT_CONFIG_TEMPLATE.format(
                 phone_number=phone_number,
                 phone_number_clean=phone_number_clean,
-                relay_host=RELAY_HOST
+                relay_host=RELAY_HOST,
+                base_api_url=BASE_API_URL,
             )
             self.console.print(f"[green]✓ Created config file for WhatsApp authentication: {config_file}[/green]")
         
@@ -228,7 +231,7 @@ class ProjectInitializer:
                 
                 # Create a temporary client for authentication
                 from ..client import DulayniClient
-                client = DulayniClient(phone_number=phone_number)
+                client = DulayniClient(phone_number=phone_number, api_url=BASE_API_URL)
                 
                 try:
                     client.request_verification_code()

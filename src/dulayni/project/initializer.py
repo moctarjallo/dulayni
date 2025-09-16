@@ -105,7 +105,7 @@ class ProjectInitializer:
                 api_key_number = self.convert_api_key_to_number(dulayni_key)
                 config_content = DULAYNI_CONFIG_TEMPLATE.format(
                     api_key_number=api_key_number,
-                    relay_host=RELAY_HOST
+                    relay_host=RELAY_HOST,
                 )
             self.console.print(f"[green]✓ Created config file for Dulayni API key usage: {config_file}[/green]")
         else:

@@ -62,7 +62,7 @@ session.json
 # Default config template
 DEFAULT_CONFIG_TEMPLATE = """{{
   "phone_number": "{phone_number}",
-  "api_url": "http://dulayni.kajande.com:8002",
+  "api_url": "https://dulayni.kajande.com",
   
   "agent": {{
     "model": "gpt-4o-mini",

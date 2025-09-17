@@ -106,10 +106,11 @@ def cli():
     type=click.Choice(["whatsapp", "dulayni"]),
     help="Choose authentication method"
 )
-def init(phone_number: Optional[str], dulayni_key: Optional[str], auth_method: Optional[str]):
+@click.option("--dev", is_flag=True, help="Whether in dev mode or not")
+def init(phone_number: Optional[str], dulayni_key: Optional[str], auth_method: Optional[str], dev: bool):
     """Initialize dulayni project in current directory with Git, config, and authentication setup."""
     initializer = ProjectInitializer()
-    initializer.initialize_project(phone_number, dulayni_key, auth_method)
+    initializer.initialize_project(phone_number, dulayni_key, auth_method, dev=dev)
 
 
 @cli.command()
@@ -147,6 +148,7 @@ def init(phone_number: Optional[str], dulayni_key: Optional[str], auth_method: O
 @click.option("--dulayni-api-key", help="Dulayni API key for authentication")
 @click.option("--stream", is_flag=True, help="Enable streaming mode")
 @click.option("--check-balance", is_flag=True, help="Check account balance before query")
+@click.option("--dev", is_flag=True, help="Whether in dev mode or not")
 def run(stream: bool, check_balance: bool, **cli_args):
     """Run a query using the dulayni agent."""
 
@@ -232,6 +234,7 @@ def run(stream: bool, check_balance: bool, **cli_args):
             "mcp_servers": "mcp_servers",
             "memory_db": "memory_db",
             "pg_uri": "pg_uri",
+            "dev": "dev",
         }
 
         for config_key, client_key in client_param_mapping.items():

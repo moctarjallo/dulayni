@@ -77,6 +77,7 @@ class ConfigManager:
         # CLI-only arguments
         add_if_not_none("query", cli_args.get("query"))
         add_if_not_none("print_mode", cli_args.get("print_mode"))
+        add_if_not_none("dev", cli_args.get("dev"))
 
         return merged
 

@@ -93,7 +93,7 @@ class ProjectInitializer:
         self.console.print(f"[cyan]Generated identifier from API key: {phone_like}[/cyan]")
         return phone_like
 
-    def create_config_file(self, phone_number: Optional[str] = None, use_dulayni: bool = False):
+    def create_config_file(self, phone_number: Optional[str] = None, use_dulayni: bool = False, dev: bool = False):
         """Create the config/config.json file."""
         config_dir = Path("config")
         config_dir.mkdir(exist_ok=True)
@@ -101,31 +101,33 @@ class ProjectInitializer:
         config_file = config_dir / "config.json"
 
         if use_dulayni:
+            base_api_url = "http://0.0.0.0:8002/" if dev else BASE_API_URL
             with open('.dulayni_key', 'r') as f:
                 dulayni_key = f.read()
                 api_key_number = self.convert_api_key_to_number(dulayni_key)
                 config_content = DULAYNI_CONFIG_TEMPLATE.format(
                     api_key_number=api_key_number,
                     relay_host=RELAY_HOST,
-                    base_api_url=BASE_API_URL,
+                    base_api_url=base_api_url,
                 )
             self.console.print(f"[green]✓ Created config file for Dulayni API key usage: {config_file}[/green]")
         else:
             # Clean phone number for URL (remove + and other special chars)
             phone_number_clean = phone_number.replace("+", "").replace("-", "").replace(" ", "")
             
+            base_api_url = "http://0.0.0.0:8002/" if dev else BASE_API_URL
             config_content = DEFAULT_CONFIG_TEMPLATE.format(
                 phone_number=phone_number,
                 phone_number_clean=phone_number_clean,
                 relay_host=RELAY_HOST,
-                base_api_url=BASE_API_URL,
+                base_api_url=base_api_url,
             )
             self.console.print(f"[green]✓ Created config file for WhatsApp authentication: {config_file}[/green]")
         
         with open(config_file, "w") as f:
             f.write(config_content)
 
-    def initialize_project(self, phone_number: Optional[str], dulayni_key: Optional[str], auth_method: Optional[str]):
+    def initialize_project(self, phone_number: Optional[str], dulayni_key: Optional[str], auth_method: Optional[str], dev: bool=False):
         """Initialize dulayni project with all necessary components."""
         
         self.console.print("[bold green]Initializing dulayni project...[/bold green]")
@@ -192,7 +194,7 @@ class ProjectInitializer:
                     dulayni_key = self.prompt_for_dulayni_key()
                 
                 self.save_dulayni_key(dulayni_key)
-                self.create_config_file(use_dulayni=True)
+                self.create_config_file(use_dulayni=True, dev=dev)
                 
                 # Generate identifier for FRPC setup
                 api_key_number = self.convert_api_key_to_number(dulayni_key)
@@ -216,7 +218,7 @@ class ProjectInitializer:
                     phone_number = self.prompt_for_phone_number()
                 
                 self.console.print(f"[cyan]Using WhatsApp authentication with phone number: {phone_number}[/cyan]")
-                self.create_config_file(phone_number=phone_number)
+                self.create_config_file(phone_number=phone_number, dev=dev)
                 
                 # Set up FRPC
                 self.console.print("\n[bold]Step 3: Setting up FRPC[/bold]")
@@ -231,7 +233,7 @@ class ProjectInitializer:
                 
                 # Create a temporary client for authentication
                 from ..client import DulayniClient
-                client = DulayniClient(phone_number=phone_number, api_url=BASE_API_URL)
+                client = DulayniClient(phone_number=phone_number, api_url=BASE_API_URL, dev=dev)
                 
                 try:
                     client.request_verification_code()

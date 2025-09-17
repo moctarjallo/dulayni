@@ -1,4 +1,5 @@
 import ast
+import os
 import requests
 from typing import Optional, Dict, Any, Generator
 import json
@@ -205,9 +206,10 @@ class DulayniClient:
         memory_db: Optional[str] = None,
         pg_uri: Optional[str] = None,
         request_timeout: float = 300.0,
+        dev: bool = False,
     ):
         # Set API URL default, but remove /run_agent suffix for flexibility
-        if api_url:
+        if api_url and not dev:
             self.base_url = api_url.rstrip("/").replace("/run_agent", "")
         else:
             self.base_url = "http://localhost:8002"
